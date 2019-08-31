@@ -38,9 +38,16 @@ module.exports = async function shouldUseTaobao (command) {
     return val
   }
 
-  const userCurrent = (await execa(command, ['config', 'get', 'registry'])).stdout
-  const defaultRegistry = registries[command]
+  let userCurrent;
+  try {
+    userCurrent = (await execa(command, ['config', 'get', 'registry'])).stdout
+  } catch (error) {
+    // TODO: Yarn 2 uses `npmRegistryServer` instead of `registry` + it must
+    // be called from a project directory
+    return save(false);
+  }
 
+  const defaultRegistry = registries[command]
   if (removeSlash(userCurrent) !== removeSlash(defaultRegistry)) {
     // user has configured custom registry, respect that
     return save(false)
